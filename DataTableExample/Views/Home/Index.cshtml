@@ -1,0 +1,70 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+@model IEnumerable<DataTableModel>
+
+
+<link rel="stylesheet"
+      href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+<link rel="stylesheet"
+      href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+<h2>Employee List</h2>
+
+<table id="employeeTable" class="display" style="width:100%">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>First Name</th>
+            <th>Middle Name</th>
+            <th>Last Name</th>
+            <th>Email Id</th>
+        </tr>
+    </thead>
+</table>
+
+<script>
+    $(document).ready(function () {
+
+        // ✔ Fix 1: Use correct table ID
+        $('#employeeTable thead th').each(function () {
+            var title = $(this).text();
+            $(this).html(title + '<br><input type="text" class="col-search form-control form-control-sm" placeholder="Search ' + title + '" />');
+        });
+
+        // ✔ Fix 2: Use the same ID again for DataTable initialization
+        var table = $('#employeeTable').DataTable({
+            processing: true,
+            serverSide: true,
+            filter: true,
+            orderMulti: true,
+            ajax: {
+                url: "/Home/LoadEmployees",
+                type: "POST"
+            },
+            columns: [
+                { data: "id", name: "Id" },
+                { data: "firstName", name: "FirstName" },
+                { data: "middleName", name: "MiddleName" },
+                { data: "lastName", name: "LastName" },
+                { data: "emailId", name: "EmailId" }
+            ]
+        });
+
+        // ✔ Fix 3: Apply search to correct table header inputs
+        table.columns().every(function () {
+            var column = this;
+
+            $('input', this.header()).on('keyup change', function () {
+                if (column.search() !== this.value) {
+                    column.search(this.value).draw();
+                }
+            });
+        });
+
+    });
+</script>
+
+
