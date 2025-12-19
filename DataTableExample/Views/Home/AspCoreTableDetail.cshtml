@@ -1,0 +1,21 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+@model IEnumerable<DataTableModel>
+
+
+@foreach (var data in Model)
+{
+    <tr>
+        <td>@data.Id</td>
+        <td>@data.FirstName</td>
+        <td>@data.MiddleName</td>
+        <td>@data.LastName</td>
+        <td>@data.EmailId</td>
+    </tr>
+
+}
+
+
+
+

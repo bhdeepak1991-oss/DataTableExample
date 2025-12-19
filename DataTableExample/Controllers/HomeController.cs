@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using System.Buffers;
 using System.Data;
 using System.Diagnostics;
 using System.Linq.Dynamic.Core;
@@ -124,7 +125,7 @@ namespace DataTableExample.Controllers
                 string error = ex.Message;
                 throw;
             }
-           
+
         }
 
         public IActionResult Privacy()
@@ -136,6 +137,63 @@ namespace DataTableExample.Controllers
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+
+        public async Task<IActionResult> AspCoreTable()
+        {
+            return await Task.Run(() => View("~/Views/Home/AspCoreTable.cshtml"));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AspCoreTableDetail(PagingRequest model)
+        {
+            var conn = _context.Database.GetDbConnection();
+            await conn.OpenAsync();
+
+            var cmd = conn.CreateCommand();
+            cmd.CommandText = "SP_GetEmployees_DataTable";
+            cmd.CommandType = CommandType.StoredProcedure;
+
+            cmd.Parameters.Add(new SqlParameter("@SearchValue",  model.SearchText));
+            cmd.Parameters.Add(new SqlParameter("@FirstNameSearch",  ""));
+            cmd.Parameters.Add(new SqlParameter("@MiddleNameSearch", ""));
+            cmd.Parameters.Add(new SqlParameter("@LastNameSearch",  ""));
+            cmd.Parameters.Add(new SqlParameter("@EmailIdSearch",  ""));
+            cmd.Parameters.Add(new SqlParameter("@SortColumn", model.SortColumn));
+            cmd.Parameters.Add(new SqlParameter("@SortDirection", model.SortDirection));
+            cmd.Parameters.Add(new SqlParameter("@Start", model.PageIndex-1));
+            cmd.Parameters.Add(new SqlParameter("@Length", model.PageSize));
+
+            List<DataTableModel> data = new List<DataTableModel>();
+
+            var reader = await cmd.ExecuteReaderAsync();
+
+            int recordsTotal = 0;
+            int filteredRecordCount = 0;
+
+            while (await reader.ReadAsync())
+            {
+                data.Add(new DataTableModel
+                {
+                    Id = Convert.ToInt32(reader["Id"]),
+                    FirstName = reader["FirstName"].ToString() ?? string.Empty,
+                    MiddleName = reader["MiddleName"].ToString() ?? string.Empty,
+                    LastName = reader["LastName"].ToString() ?? string.Empty,
+                    EmailId = reader["EmailId"].ToString() ?? string.Empty,
+
+                });
+
+                recordsTotal = Convert.ToInt32(reader["TotalCount"]);
+                filteredRecordCount = Convert.ToInt32(reader["FilteredCount"]);
+            }
+
+            await conn.CloseAsync();
+            return Json(new
+            {
+                html = await this.RenderViewAsync("~/Views/Home/AspCoreTableDetail.cshtml", data, true),
+                totalRecords = filteredRecordCount,
+                filteredRecords = filteredRecordCount
+            });
         }
     }
 }
