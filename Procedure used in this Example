@@ -1,4 +1,4 @@
-ALTER PROCEDURE SP_GetEmployees_DataTable
+ALTER PROCEDURE [dbo].[SP_GetEmployees_DataTable]
     @SearchValue NVARCHAR(200) = '',
     @FirstNameSearch NVARCHAR(200) = '',
     @MiddleNameSearch NVARCHAR(200) = '',
@@ -11,57 +11,53 @@ ALTER PROCEDURE SP_GetEmployees_DataTable
 AS
 BEGIN
     SET NOCOUNT ON;
-    Declare @TotalCount INT=0;
-    Declare @FilteredCount INT =0;
 
-    -- Total count (without filters)
-    SELECT @TotalCount = COUNT(1)
-    FROM Employee;
+    DECLARE @TotalCount INT;
+    DECLARE @FilteredCount INT;
+
+    -- Total count
+    SELECT @TotalCount = COUNT(*) FROM Employee;
 
     -- Filtered count
-    SELECT @FilteredCount = COUNT(1)
+    SELECT @FilteredCount = COUNT(*)
     FROM Employee
     WHERE
-        ( @SearchValue = '' OR
-          FirstName LIKE '%' + @SearchValue + '%' OR
-          MiddleName LIKE '%' + @SearchValue + '%' OR
-          LastName LIKE '%' + @SearchValue + '%' OR
-          EmailId LIKE '%' + @SearchValue + '%' )
-        AND ( @FirstNameSearch = '' OR FirstName LIKE '%' + @FirstNameSearch + '%' )
-        AND ( @MiddleNameSearch = '' OR MiddleName LIKE '%' + @MiddleNameSearch + '%' )
-        AND ( @LastNameSearch = '' OR LastName LIKE '%' + @LastNameSearch + '%' )
-        AND ( @EmailIdSearch = '' OR EmailId LIKE '%' + @EmailIdSearch + '%' );
+        (
+            @SearchValue = '' OR
+            ISNULL(FirstName,'') LIKE '%' + @SearchValue + '%' OR
+            ISNULL(MiddleName,'') LIKE '%' + @SearchValue + '%' OR
+            ISNULL(LastName,'') LIKE '%' + @SearchValue + '%' OR
+            ISNULL(EmailId,'') LIKE '%' + @SearchValue + '%'
+        )
+        AND (@FirstNameSearch = '' OR ISNULL(FirstName,'') LIKE '%' + @FirstNameSearch + '%')
+        AND (@MiddleNameSearch = '' OR ISNULL(MiddleName,'') LIKE '%' + @MiddleNameSearch + '%')
+        AND (@LastNameSearch = '' OR ISNULL(LastName,'') LIKE '%' + @LastNameSearch + '%')
+        AND (@EmailIdSearch = '' OR ISNULL(EmailId,'') LIKE '%' + @EmailIdSearch + '%');
 
-    -- Paged Data
-    SELECT  @TotalCount AS TotalCount,
-            @FilteredCount AS FilteredCount,
-            Id, FirstName, MiddleName, LastName, EmailId
+    -- Data
+    SELECT
+        @TotalCount AS TotalCount,
+        @FilteredCount AS FilteredCount,
+        Id, FirstName, MiddleName, LastName, EmailId
     FROM Employee
     WHERE
-        ( @SearchValue = '' OR
-          FirstName LIKE '%' + @SearchValue + '%' OR
-          MiddleName LIKE '%' + @SearchValue + '%' OR
-          LastName LIKE '%' + @SearchValue + '%' OR
-          EmailId LIKE '%' + @SearchValue + '%' )
-        AND ( @FirstNameSearch = '' OR FirstName LIKE '%' + @FirstNameSearch + '%' )
-        AND ( @MiddleNameSearch = '' OR MiddleName LIKE '%' + @MiddleNameSearch + '%' )
-        AND ( @LastNameSearch = '' OR LastName LIKE '%' + @LastNameSearch + '%' )
-        AND ( @EmailIdSearch = '' OR EmailId LIKE '%' + @EmailIdSearch + '%' )
+        (
+            @SearchValue = '' OR
+            ISNULL(FirstName,'') LIKE '%' + @SearchValue + '%' OR
+            ISNULL(MiddleName,'') LIKE '%' + @SearchValue + '%' OR
+            ISNULL(LastName,'') LIKE '%' + @SearchValue + '%' OR
+            ISNULL(EmailId,'') LIKE '%' + @SearchValue + '%'
+        )
     ORDER BY
         CASE WHEN @SortColumn='Id' AND @SortDirection='asc' THEN Id END ASC,
         CASE WHEN @SortColumn='Id' AND @SortDirection='desc' THEN Id END DESC,
-
         CASE WHEN @SortColumn='FirstName' AND @SortDirection='asc' THEN FirstName END ASC,
         CASE WHEN @SortColumn='FirstName' AND @SortDirection='desc' THEN FirstName END DESC,
-
         CASE WHEN @SortColumn='MiddleName' AND @SortDirection='asc' THEN MiddleName END ASC,
         CASE WHEN @SortColumn='MiddleName' AND @SortDirection='desc' THEN MiddleName END DESC,
-
         CASE WHEN @SortColumn='LastName' AND @SortDirection='asc' THEN LastName END ASC,
         CASE WHEN @SortColumn='LastName' AND @SortDirection='desc' THEN LastName END DESC,
-
         CASE WHEN @SortColumn='EmailId' AND @SortDirection='asc' THEN EmailId END ASC,
         CASE WHEN @SortColumn='EmailId' AND @SortDirection='desc' THEN EmailId END DESC
-
     OFFSET @Start ROWS FETCH NEXT @Length ROWS ONLY;
 END
