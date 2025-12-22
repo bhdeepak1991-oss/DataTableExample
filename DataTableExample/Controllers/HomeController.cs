@@ -145,7 +145,7 @@ namespace DataTableExample.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AspCoreTableDetail(PagingRequest model)
+        public async Task<IActionResult> AspCoreTableDetail(EmployeePagingModel model)
         {
             var conn = _context.Database.GetDbConnection();
             await conn.OpenAsync();
@@ -154,14 +154,14 @@ namespace DataTableExample.Controllers
             cmd.CommandText = "SP_GetEmployees_DataTable";
             cmd.CommandType = CommandType.StoredProcedure;
 
-            cmd.Parameters.Add(new SqlParameter("@SearchValue",  model.SearchText));
-            cmd.Parameters.Add(new SqlParameter("@FirstNameSearch",  ""));
-            cmd.Parameters.Add(new SqlParameter("@MiddleNameSearch", ""));
-            cmd.Parameters.Add(new SqlParameter("@LastNameSearch",  ""));
-            cmd.Parameters.Add(new SqlParameter("@EmailIdSearch",  ""));
+            cmd.Parameters.Add(new SqlParameter("@SearchValue",  model.SearchText?.Trim() ?? string.Empty));
+            cmd.Parameters.Add(new SqlParameter("@FirstNameSearch",  model.FirstNameSearch?.Trim() ?? string.Empty));
+            cmd.Parameters.Add(new SqlParameter("@MiddleNameSearch", model.MiddleNameSearch?.Trim() ?? string.Empty));
+            cmd.Parameters.Add(new SqlParameter("@LastNameSearch",  model.LastNameSearch?.Trim() ?? string.Empty));
+            cmd.Parameters.Add(new SqlParameter("@EmailIdSearch",  model.EmailIdSearch?.Trim() ?? string.Empty));
             cmd.Parameters.Add(new SqlParameter("@SortColumn", model.SortColumn));
             cmd.Parameters.Add(new SqlParameter("@SortDirection", model.SortDirection));
-            cmd.Parameters.Add(new SqlParameter("@Start", model.PageIndex-1));
+            cmd.Parameters.Add(new SqlParameter("@Start", (model.PageIndex-1)* model.PageSize));
             cmd.Parameters.Add(new SqlParameter("@Length", model.PageSize));
 
             List<DataTableModel> data = new List<DataTableModel>();

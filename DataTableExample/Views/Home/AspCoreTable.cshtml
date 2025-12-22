@@ -1,6 +1,98 @@
 ﻿@{
     ViewData["Title"] = "Employee Management";
 }
+<style>
+   
+    /* Page look */
+    body {
+        background-color: #f8f9fa;
+    }
+
+    h4 {
+        font-size: 1.1rem;
+        color: #2c3e50;
+    }
+
+    /* Card */
+    .card {
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+    }
+
+    /* Table */
+    table {
+        font-size: 0.85rem;
+    }
+
+    thead th {
+        background: #f1f3f5;
+        color: #343a40;
+        font-weight: 600;
+        vertical-align: middle;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+        thead th i {
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+
+    tbody tr:hover {
+        background-color: #f8f9fc;
+    }
+
+    tbody td {
+        vertical-align: middle;
+    }
+
+    /* Search box */
+    #txtSearch {
+        border-radius: 6px;
+    }
+
+    /* Page size dropdown */
+    #ddlPageSize {
+        border-radius: 6px;
+    }
+
+    /* Pagination */
+    .pagination .page-item .page-link {
+        color: #495057;
+        border-radius: 4px;
+        margin: 0 2px;
+        font-size: 0.8rem;
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+        color: #fff;
+    }
+
+    .pagination .page-item.disabled .page-link {
+        color: #adb5bd;
+    }
+
+    /* Page info */
+    #pageInfo {
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+
+    /* Buttons */
+    .btn-sm {
+        border-radius: 6px;
+        font-size: 0.8rem;
+    }
+
+    /* Loading row */
+    #tblBody td {
+        font-size: 0.85rem;
+    }
+
+
+</style>
 
 <!-- Bootstrap -->
 <link rel="stylesheet"
@@ -47,6 +139,35 @@
                         <th onclick="sort('LastName')">Last Name <i id="sort-LastName" class="bi bi-arrow-down-up ms-1"></i></th>
                         <th onclick="sort('EmailId')">Email <i id="sort-EmailId" class="bi bi-arrow-down-up ms-1"></i></th>
                     </tr>
+
+                    <tr>
+                        <th>
+                            <input type="text"
+                                   class="form-control form-control-sm column-search" id="txtSearchId"
+                                   placeholder="Search Id"
+                                    />
+                        </th>
+                        <th>
+                            <input type="text"
+                                   class="form-control form-control-sm column-search" id="txtSearchFirstName"
+                                   placeholder="Search First Name" />
+                        </th>
+                        <th>
+                            <input type="text"
+                                   class="form-control form-control-sm column-search" id="txtSearchMiddleName"
+                                   placeholder="Search Middle Name" />
+                        </th>
+                        <th>
+                            <input type="text"
+                                   class="form-control form-control-sm column-search" id="txtSearchLastName"
+                                   placeholder="Search Last Name" />
+                        </th>
+                        <th>
+                            <input type="text"
+                                   class="form-control form-control-sm column-search" id="txtSearchEmail"
+                                   placeholder="Search Email" />
+                        </th>
+                    </tr>
                 </thead>
                 <tbody id="tblBody"></tbody>
             </table>
@@ -70,6 +191,15 @@
     let sortColumn = "Id";
     let sortDirection = "ASC";
     let searchText = "";
+
+        $(document).ready(function () {
+
+        $(".column-search").on("keyup", function () {
+            page = 1; 
+            loadData();
+        });
+
+    });
 
     $(document).ready(function () {
         loadData();
@@ -118,7 +248,12 @@
             PageSize: pageSize,
             SortColumn: sortColumn,
             SortDirection: sortDirection,
-            SearchText: searchText
+            SearchText: searchText,
+            FirstNameSearch: txtSearchFirstName.value,
+            MiddleNameSearch: txtSearchMiddleName.value,
+            LastNameSearch:  txtSearchLastName.value,
+            EmailIdSearch: txtSearchEmail.value,
+            IdSearch: txtSearchId.value
         }, function (response) {
             $("#tblBody").html(response.html);
             renderPagination(response.filteredRecords);
